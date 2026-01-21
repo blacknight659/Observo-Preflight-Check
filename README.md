@@ -3,8 +3,18 @@
 A helpful shell script to run before a POC to ensure your VM is able to download and install all dependancies. 
 
 
-### The Observo Site installer requires communication to download dependencies. As many environments are bespoke, this simple test will ensure your VM is able to communicate with external systems. 
+### The Observo Site installer requires communication to download dependencies. As many environments are bespoke, this simple test will ensure your VM is able to communicate with external systems. '
 
+### Manager IPs
+This will allow communcation from you Site(s) to the Observo Manager hosed by Observo SaaS/Hybrid
+##### POC "Sandbox" manager IPs only
+- For outgoing traffic from a VM/site: 18.118.236.155, 3.146.130.232
+- For Incoming traffic from manager to site/VM: 3.22.184.24
+
+##### Production manager IPs
+- Provided by your Observo Account team
+
+### Site Installer IPs
 #### A list of requried ports can be found here. 
 - https://docs.observo.ai/6S3TPBguCvVUaX3Cy74P/deployment/sizing-and-compute-cost-planning/ports-protocols
 
