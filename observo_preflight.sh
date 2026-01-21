@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # ==============================================================================
-# Observo Pre-Flight Installer Check v8.0
-# Features: Dual-Stage Connectivity Check (SSL vs Network), Smart Disk, Proxy Wizard
+# Observo Pre-Flight Installer Check v8.1
+# Features: Dual-Stage Connectivity (SSL/Net), Smart Disk, Proxy Wizard, Arch Checks
 # ==============================================================================
 
 # --- Auto-Elevate to Root ---
@@ -78,6 +78,7 @@ configure_proxy_settings() {
     log "Current no_proxy: ${no_proxy:-'none'}"
     
     local INTERNAL_RANGES="localhost,127.0.0.1,10.0.0.0/8,192.168.0.0/16,172.16.0.0/12,.svc,.cluster.local"
+    # UPDATED: Added cloudfront.net and ubuntu.com based on new requirements
     local EXTERNAL_WHITELIST=".ubuntu.com,.observo.ai,.k3s.io,.github.com,.githubusercontent.com,.helm.sh,.docker.io,.cloudflare.docker.com,.quay.io,.cloudfront.net,.ecr.aws,.k8s.io,.dkr.ecr.us-east-1.amazonaws.com,.s3.dualstack.eu-south-1.amazonaws.com,.pkg.dev,.s3.us-east-1.amazonaws.com"
     local NEW_NO_PROXY="${no_proxy}"
     local CHANGES_MADE=false
@@ -229,6 +230,8 @@ run_connectivity_checks() {
     check_conn "get.helm.sh" "443" "Helm"
     check_conn "github.com" "443" "GitHub"
     check_conn "release-assets.githubusercontent.com" "443" "GitHub Assets"
+    # UPDATED: Added OS Update Check
+    check_conn "archive.ubuntu.com" "443" "Ubuntu Updates (*.ubuntu.com)"
     
     log "\n--- Container Registries & CDNs ---"
     check_conn "registry-1.docker.io" "443" "Docker Hub"
@@ -244,7 +247,7 @@ run_connectivity_checks() {
     check_conn "prod-registry-k8s-io-eu-south-1.s3.dualstack.eu-south-1.amazonaws.com" "443" "AWS S3 (K8s EU)"
     check_conn "prod-us-east-1-starport-layer-bucket.s3.us-east-1.amazonaws.com" "443" "AWS S3 (Starport)"
 
-    log "\n--- Regional Endpoints ---"
+    log "\n--- Observo Manager (Site to Manager) ---"
     # US
     check_conn "p01-metrics.observo.ai" "443" "US Metrics"
     check_conn "p01-api.observo.ai" "443" "US API"
@@ -257,10 +260,19 @@ run_connectivity_checks() {
     check_conn "ap-1-metrics.observo.ai" "443" "Mumbai Metrics"
     check_conn "ap1-api.observo.ai" "443" "Mumbai API"
     check_conn "ap1-auth.observo.ai" "443" "Mumbai Auth"
-    # Sandbox
+    
+    log "\n--- Sandbox / POC Environment (Target) ---"
+    # UPDATED: Added sb-logs and reorganized based on new docs
     check_conn "sb-metrics.observo.ai" "443" "SB Metrics"
+    check_conn "sb-logs.observo.ai" "443" "SB Logs" 
     check_conn "sb-api.observo.ai" "443" "SB API"
     check_conn "sb-auth.observo.ai" "443" "SB Auth"
+    
+    log "\n--- Incoming Traffic / Firewall Warnings ---"
+    log "${YELLOW}[ACTION REQUIRED]${NC} Ensure your firewall allows INCOMING traffic from:"
+    log "  - IP: ${CYAN}3.22.184.24${NC} (Observo NAT Gateway)"
+    log "  - Desc: Required for Manager to Site communication (updates/config)."
+    log "  - Docs: https://docs.observo.ai/6S3TPBguCvVUaX3Cy74P/deployment/sizing-and-compute-cost-planning/ports-protocols"
 }
 
 # --- Main Execution Flow ---
